@@ -8,7 +8,7 @@ class AuthenticationController < ApplicationController
 
     # verifies if the user is support analyst
     #
-    if user == 'shima' # identifies as a support analyst
+    if user == 'aladdin' # identifies as a support analyst
       # adds the user into the online queue
       UserManager.add_online(user)
       # creates a queue for this specific analyst
