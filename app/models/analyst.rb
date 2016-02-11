@@ -1,0 +1,2 @@
+class Analyst < User
+end
