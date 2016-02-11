@@ -2,7 +2,79 @@
   <head>
     <title>t2m</title>
   </head>
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+
+  <!-- CSS Reset -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.css">
+
+  <!-- Milligram CSS minified -->
+  <link rel="stylesheet" href="https://milligram.github.io/css/milligram.min.css">
+  <style>
+    .lw-header h1 {
+      margin-top: 0.40em;
+    }
+
+    .lw-form {
+      margin: 70px 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+    }
+
+    .lw-form label {
+      margin: 20px;
+      display: inline-block;
+    }
+
+    .lw-form input {
+      width: 64%;
+      border: none;
+      margin: 0;
+      height: 40px;
+    }
+
+    .button {
+      width: 100% !important;
+      background-color: #CA4D4D !important;
+    }
+
+    .button:hover {
+      background-color: #606C76 !important;
+    }
+
+  </style>
   <body>
+    <section class="lw-login login">
+      <header class="lw-header">
+        <div class="container">
+          <h1>Layer - Chat</h1>
+          <hr>
+        </div>
+      </header>
+      <div class="container">
+        
+        <p> <b>Hello Client</b>, Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente, quaerat laudantium beatae accusamus totam asperiores delectus ea saepe consequatur consequuntur non laborum fugiat, eligendi iusto dolorem obcaecati veritatis temporibus ut.</p>
+
+        <form id='login' class="lw-form login">
+          <label for='name'>Enter your name</label>
+          <input type='hidden' id='queue' value='corporativo'>
+          <input id='name' type'text' placeholder="Enter your name">
+          <input class="button" type='submit' value='Enter in Chat'>
+        </form>
+
+      </div>
+    </section>
+
+    <div class='chat'>
+      <h1>t2m - chat</h1>
+      <form id='chat'>
+        <div class='messages'></div>
+        <input type='text' id='message' size='80' autocomplete='off'>
+        <input class="button" type='submit' value='enviar'>
+      </form>
+    </div>
+
     <script>
       $(document).ready(function() {
         $('.chat').hide();
@@ -177,25 +249,5 @@
 
       });
     </script>
-
-    <div class='login'>
-      <h1>t2m - user</h1>
-      <form id='login'>
-        <label for='name'>enter your name</label>
-        <input type='hidden' id='queue' value='corporativo'>
-        <input id='name' type'text' size='40'>
-        <input type='submit' value='chat'>
-      </form>
-    </div>
-
-    <div class='chat'>
-      <h1>t2m - chat</h1>
-      <form id='chat'>
-        <div class='messages'></div>
-        <input type='text' id='message' size='80' autocomplete='off'>
-        <input type='submit' value='enviar'>
-      </form>
-    </div>
-
   </body>
 </html>
