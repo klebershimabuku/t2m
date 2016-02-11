@@ -41,7 +41,7 @@ GEM
     binding_of_caller (0.7.2)
       debug_inspector (>= 0.0.1)
     builder (3.2.2)
-    byebug (8.2.2)
+    coderay (1.1.0)
     concurrent-ruby (1.0.0)
     debug_inspector (0.0.2)
     domain_name (0.5.20160128)
@@ -76,6 +76,7 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
+    method_source (0.8.2)
     mime-types (2.99)
     mini_portile2 (2.0.0)
     minitest (5.8.4)
@@ -83,6 +84,10 @@ GEM
     netrc (0.11.0)
     nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)
+    pry (0.10.1)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     rack (1.6.4)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -112,6 +117,7 @@ GEM
       thor (>= 0.18.1, < 2.0)
     rake (10.5.0)
     rdoc (4.2.1)
+    redis (3.2.2)
     rest-client (1.8.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
@@ -127,6 +133,7 @@ GEM
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
     securecompare (1.0.0)
+    slop (3.6.0)
     spring (1.6.3)
     sprockets (3.5.2)
       concurrent-ruby (~> 1.0)
@@ -158,13 +165,14 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  byebug
   jbuilder (~> 2.0)
   jquery-rails
   json-jwt
   layer-identity_token
   layer-ruby
+  pry
   rails (= 4.2.5)
+  redis
   sass-rails (~> 5.0)
   sdoc (~> 0.4.0)
   spring
