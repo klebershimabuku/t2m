@@ -55,10 +55,11 @@
         $('#login').submit(function(e) {
           e.preventDefault();
 
+          var username = $('#username').val();
           // get queue name
-          $.get('/users/queue', function(data) {
+          $.get('/users/queue?username=' + username, function(data) {
+
             var queue = data.queue;
-            var username = $('#username').val();
 
             chat.currentUser = username;
 

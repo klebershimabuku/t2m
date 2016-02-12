@@ -12,7 +12,7 @@ class AuthenticationController < ApplicationController
       # adds the user into the online queue
       UserManager.add_online(user)
       # creates a queue for this specific analyst
-      analyst = User.find(user)
+      analyst = User.find_by_login(user)
       MyQueue.add(analyst)
     else # potential buyer or customer
     end
