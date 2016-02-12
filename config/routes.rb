@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   get '/users/queue', to: 'users#queue'
   get '/users/queue/:queue/online', to: 'users#online'
 
+  post '/users/:channel/join', to: 'users#join'
+
   post '/conversations', to: 'conversations#create'
   post '/messages', to: 'messages#create'
 end

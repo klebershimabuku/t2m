@@ -281,11 +281,19 @@
               chat.currentUser = username;
 
               // hides the login screen
-              $('.login').hide();
+              $('.lw-dashboard-container').hide();
+
+              // join analyst to specified channel
+              $.post('/users/' + channel + '/join', {'username': username}, function(response) {
+                console.log('analista entrou no canal..');
+              });
+
+              // get the last waiting protocol
 
               var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
               ws.addEventListener('message', messageHandler);
               console.log('connection established.');
+
             });
 
           function messageHandler(event) {

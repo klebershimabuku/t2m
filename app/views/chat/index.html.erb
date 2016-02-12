@@ -58,8 +58,8 @@
 
         <form id='login' class="lw-form login">
           <label for='name'>Enter your name</label>
-          <input type='hidden' id='queue' value='corporativo'>
-          <input id='name' type'text' placeholder="Enter your name">
+          <input type='hidden' id='channel' value='corporativo'>
+          <input id='username' type'text' placeholder="Enter your name">
           <input class="button" type='submit' value='Enter in Chat'>
         </form>
 
@@ -89,28 +89,35 @@
 
         $('#login').submit(function(e) {
           e.preventDefault();
-          var queue_name = $('#queue').val();
+          var channel  = $('#channel').val();
+          var username = $('#username').val();
 
-          // get an online support analyst for this queue
-         // $.get('/users/queue/' + queue_name + '/online', function(data) {
-         //   support_user = data.user;
+          // get a session token
+          $.get('/authenticate' + '?user_id=' + username, function(user) {
+            var session_token = user.session_token;
+            console.log(session_token);
 
-            // get a session token
-            username = $('#name').val();
+            chat.currentUser = username;
 
-            $.get('/authenticate' + '?user_id=' + username, function(user) {
-              var session_token = user.session_token;
-              console.log(session_token);
 
-              chat.currentUser = username;
+            // creates a new protocol.
+            attributes = {
+              'channel': channel,
+              'username': username
+            };
+
+            $.post('/conversations/', attributes, function(response) {
+              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
+              ws.addEventListener('message', messageHandler);
+              console.log('connection established.');
 
               // hides the login screen
               $('.login').hide();
 
-              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
-              ws.addEventListener('message', messageHandler);
-              console.log('connection established.');
+              // displays chat screen
+              $('.chat').show();
             });
+          });
 
           function messageHandler(event) {
             var message = JSON.parse(event.data);
@@ -200,19 +207,6 @@
             // finds an existent conversation on local storage
             // if exists, creates a message on it.
             // otherwise initiate a new conversation
-
-            // creates a conversation between the users
-            console.log('creating a new conversation..');
-            $.post('/conversations', { participants: [username], queue: queue_name }, function(conversation) {
-              if (typeof conversation != "undefined") {
-                chat.conversationId = conversation.id;
-
-                console.log('conversation created.');
-                $('.chat').show();
-
-                // saves the conversation id on local storage
-              }
-            });
 
             // displays the chat screen
             $('chat').show();
