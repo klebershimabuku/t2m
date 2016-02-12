@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  customer_login: MyString
+  channel_id: 
+  conversation_id: MyString
+  phone: MyString
+  status: MyString
+  finalized_date: 2016-02-11
+
+two:
+  customer_login: MyString
+  channel_id: 
+  conversation_id: MyString
+  phone: MyString
+  status: MyString
+  finalized_date: 2016-02-11
