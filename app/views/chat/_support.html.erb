@@ -167,23 +167,22 @@
 				font-weight: 700;
 				text-transform: uppercase;
 			}
-
   	  </style>
 </head>
 <body>
-	<section class="lw-login-container lw-hide">
+	<section class="lw-login-container">
 		<div class="container">
 			<div class="lw-login">
 				<h1>Login</h1>
 				<form id="login">
-					<input type="text" placeholder="Enter a login name">
-					<input type="submit" class="lw-button login" value="Entrar"></input>
+					<input type="text" id="username" placeholder="Enter a login name" required/>
+					<input type="submit" class="lw-button login" value="Entrar" />
 				</form>
 			</div>
 		</div>
 	</section>
 	
-	<section class="lw-dashboard-container lw-hide">
+	<section class="lw-dashboard-container">
 		<div class="container">
 			<header>
 				<h1>Dashboard</h1>
@@ -215,7 +214,7 @@
 		</div>
 	</section>
 	
-	<section class="lw-chat-container">
+	<section class="lw-chat-container lw-hide">
 		<div class="container">
 			<form id="chat">
 				<div class="lw-chat">
@@ -243,6 +242,158 @@
 			</form>
 		</div>
 	</section>
+
+	<script>
+
+	// LOGIN
+
+	$(document).ready(function(){
+		$('.lw-dashboard-container').hide();
+	});
+
+	$('#login').submit(function(e) {
+          e.preventDefault();
+          var queue_name = $('#queue').val();
+
+          	// get an online support analyst for this queue
+         	// $.get('/users/queue/' + queue_name + '/online', function(data) {
+         	//   support_user = data.user;
+
+            // get a session token
+            username = $('#name').val();
+
+            $.get('/authenticate' + '?user_id=' + username, function(user) {
+              var session_token = user.session_token;
+              console.log(session_token);
+
+              chat.currentUser = username;
+
+              // hides the login screen
+              $('.login').hide();
+
+              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
+              ws.addEventListener('message', messageHandler);
+              console.log('connection established.');
+            });
+
+          function messageHandler(event) {
+            var message = JSON.parse(event.data);
+            var body = message.body;
+              console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+
+            switch(message.type) {
+              case "change":
+                handleChange(body);
+                break;
+            }
+          };
+
+          // message can be a Message type or a Conversation type.
+          function handleChange(message) {
+            try {
+              switch(message.operation) {
+                case "create":
+                  console.log("WEBSOCKET CREATE: " + message.object.id);
+                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+                  switch(message.object.type) {
+                    case "Message":
+                      handleCreateMessage(message);
+                      break;
+                    case "Conversation":
+                      handleCreateConversation(message);
+                  }
+
+                  break;
+
+                case "delete":
+                  console.log("WEBSOCKET DELETE: " + message.object.id);
+                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+                  break;
+
+                case "patch":
+                  console.log("WEBSOCKET PATCH: " + message.object.id);
+                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+                  break;
+
+              }
+            } catch(e) {
+              console.error("layer-patch Error: " + e);
+            }
+          }
+
+          function handleCreateMessage(message) {
+            var sent_at = formatDateTime(message.data.sent_at);
+            var parts = message.data.parts;
+            var sender = message.data.sender;
+
+            $.each(parts, function(index,message) {
+              var new_message = '<p>[' + sent_at + '] ' + sender.name + ' disse: ' + message.body + '</p>';
+              chat.addMessage(new_message);
+            });
+          }
+
+          function handleCreateConversation(message) {
+            var participants = message.data.participants;
+            var created_at = formatDateTime(message.data.created_at);
+            var created_by = createdBy(chat.currentUser, participants);
+            var new_message = '<p>[' + created_at + '] ' + created_by + ' iniciou uma conversa com você..' + '</p>';
+
+            chat.conversationId = message.data.id;
+            chat.addMessage(new_message);
+          }
+
+          function createdBy(current_user, participants) {
+            for (var i=participants.length-1; i>=0; i--) {
+              if (participants[i] === chat.currentUser) {
+                participants.splice(1, 1);
+                return participants[0];
+              }
+            }
+          }
+
+          function formatDateTime(datetime) {
+            var date = new Date(datetime);
+            var dateString = date.toLocaleDateString();
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var seconds = date.getSeconds();
+
+            return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
+          }
+
+            // finds an existent conversation on local storage
+            // if exists, creates a message on it.
+            // otherwise initiate a new conversation
+
+            // creates a conversation between the users
+            console.log('creating a new conversation..');
+            $.post('/conversations', { participants: [username], queue: queue_name }, function(conversation) {
+              if (typeof conversation != "undefined") {
+                chat.conversationId = conversation.id;
+
+                console.log('conversation created.');
+                $('.lw-dashboard-container').show();
+
+            	//hide form login
+                $('.lw-login-container').hide();
+
+                // saves the conversation id on local storage
+              }
+            });
+
+            // displays the chat screen
+            $('.lw-dashboard-container').show();
+
+            //hide form login
+            $('.lw-login-container').hide();
+          });
+       // });
+
+	// CHAT
+
+
+
+	</script>
 
 </body>
 </html>
