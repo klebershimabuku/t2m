@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Layer Chat</title>
+	<!-- Google Fonts -->
+  	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+
+	  <!-- CSS Reset -->
+	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.css">
+
+	  <!-- Milligram CSS minified -->
+  	  <link rel="stylesheet" href="https://milligram.github.io/css/milligram.min.css">
+
+  	  <style>
+
+		.lw-login {
+			margin: 100px 250px;
+		}
+
+		.lw-login .lw-button {
+			margin-top: 15px;
+		}
+
+		.lw-hide {
+			display: none;
+		}
+
+		.lw-show {
+			display: block;
+		}
+
+		.lw-dashboard-container {
+			padding-top: 50px;
+		}
+		.lw-dashboard-container h1 {
+			display: inline-block;
+		}
+
+		.lw-dashboard-container small {
+			display: inline-block;
+			font-size: 15px;
+			background-color: #ccc;
+			color: #fff;
+			padding: 10px 25px;
+			border-radius: 5px;
+			position: relative;
+    		bottom: 14px;
+		}
+		
+		.lw-form {
+			width: 50%;
+			display: inline-block;
+			float: left;
+			padding: 20px;
+		}
+		.lw-queue-title {
+			font-size: 18px;
+		}
+
+		.lw-queue {
+			list-style: none;
+		}
+
+		.lw-queue li {
+			border: 2px solid #000;
+			border-radius: 5px;
+			padding: 3px;
+		}
+		.lw-queue .disabled {
+			border: 1px solid #E1E1E1;
+		}
+
+		.lw-queue .disabled:hover {
+			border: 1px solid #E1E1E1;
+		}
+
+		.lw-queue .disabled a {
+			cursor: default;
+			pointer-events: none;
+			color: #ccc;
+		}
+
+		.lw-queue li a {
+			font-size: 14px;
+			padding: 0 15px;
+			color: #000;
+			font-weight: 300;
+			width: 100%;
+			display: block;
+		}
+
+		.lw-credit {
+			width: 50%;
+			float: left;
+			padding: 20px;
+		}
+
+		.lw-chat-container
+
+
+
+
+  	  </style>
+</head>
+<body>
+	<section class="lw-login-container lw-hide">
+		<div class="container">
+			<div class="lw-login">
+				<h1>Login</h1>
+				<form id="login">
+					<input type="text" placeholder="Enter a login name">
+					<input type="submit" class="lw-button login" value="Entrar"></input>
+				</form>
+			</div>
+		</div>
+	</section>
+	<section class="lw-dashboard-container lw-hide">
+		<div class="container">
+			<header>
+				<h1>Dashboard</h1>
+				<small>Analyst</small>
+				<hr>
+			</header>
+			<div class="lw-dashboard">
+				<form id="dashboard" class="lw-form">
+					<h2 class="lw-queue-title">Fila de Atendimento</h2>
+					<ul class="lw-queue">
+						<li>
+							<a href="">Coorporativo</a>
+						</li>
+						<li class="disabled">
+							<a href="">Hospedagem</a>
+						</li>
+						<li class="disabled">
+							<a href="">Webmail</a>
+						</li>
+					</ul>
+					<input type="submit" class="button" value="Iniciar Atendimento" >
+				</form>
+
+				<div class="lw-credit">
+					<h1>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</h1>
+					<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Optio et reprehenderit soluta possimus, laborum in exercitationem ipsa inventore, ducimus excepturi eius! Quos amet quam at distinctio aut magni porro recusandae!</p>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="lw-chat-container">
+		<div class="container">
+			<header>
+				<h1>Attendance</h1>
+				<hr>
+			</header>
+			<section class="lw-chat">
+				<h1>text</h1>
+			</section>
+			
+		</div>
+	</section>
+</body>
+</html>
