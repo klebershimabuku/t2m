@@ -5,3 +5,12 @@
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
+channel = Channel.create(name: 'corporativo')
+
+['aladdin', 'edmo', 'shima'].each do |login|
+  user = User.create(login: login)
+  user.channels = [channel]
+  user.save!
+
+  puts "login: #{user.login} created with channel: #{channel.name}"
+end
