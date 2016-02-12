@@ -92,8 +92,8 @@
           var queue_name = $('#queue').val();
 
           // get an online support analyst for this queue
-          $.get('/users/queue/' + queue_name + '/online', function(data) {
-            support_user = data.user;
+         // $.get('/users/queue/' + queue_name + '/online', function(data) {
+         //   support_user = data.user;
 
             // get a session token
             username = $('#name').val();
@@ -203,7 +203,7 @@
 
             // creates a conversation between the users
             console.log('creating a new conversation..');
-            $.post('/conversations', { participants: [support_user, username] }, function(conversation) {
+            $.post('/conversations', { participants: [username], queue: queue_name }, function(conversation) {
               if (typeof conversation != "undefined") {
                 chat.conversationId = conversation.id;
 
@@ -217,7 +217,7 @@
             // displays the chat screen
             $('chat').show();
           });
-        });
+       // });
 
         $('#chat').submit(function(e) {
           e.preventDefault();
