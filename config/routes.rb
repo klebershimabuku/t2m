@@ -6,6 +6,8 @@ Rails.application.routes.draw do
   get '/chat', to: 'chat#index'
   get '/chat/support', to: 'chat#support'
 
+  post '/chat/:channel/next', to: 'chat#next'
+
   get '/users/queue', to: 'users#queue'
   get '/users/queue/:queue/online', to: 'users#online'
 
