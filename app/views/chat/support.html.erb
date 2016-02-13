@@ -223,7 +223,7 @@
           <div class="lw-message-content">
             <h2 class="lw-user"><strong>User</strong> disse:</h2>
 
-            <p class="message">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptas a magni, necessitatibus cum neque architecto illo voluptatem iusto praesentium tempora, omnis alias quas. Doloremque error illo et officia iure similique!Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem dolores unde, blanditiis odit, sunt porro sed reiciendis atque pariatur ut officiis nam minima quia provident. Sed, dolore, ducimus! Dolor, nesciunt!</p>
+            <p class="messages">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptas a magni, necessitatibus cum neque architecto illo voluptatem iusto praesentium tempora, omnis alias quas. Doloremque error illo et officia iure similique!Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem dolores unde, blanditiis odit, sunt porro sed reiciendis atque pariatur ut officiis nam minima quia provident. Sed, dolore, ducimus! Dolor, nesciunt!</p>
 
             <div class="lw-status">
               <p>delivering</p>
@@ -232,7 +232,7 @@
         </div>
         <div class="lw-chat-actions">
           <div class="lw-chat-send">
-            <input type="text">
+            <input type="text" id="message" placeholder="send a message..." required/>
             <button class="lw-send">Enviar</button>
           </div>
           <div class="lw-other-actions">
@@ -268,8 +268,8 @@
           var username = $('#username').val();
           $('.username').attr('value', username);
 
-          $('.lw-login-container').hide();
-          $('.lw-dashboard-container').show();
+          $('.lw-login-container').hide("slow");
+          $('.lw-dashboard-container').show("slow");
         });
 
         $('#dashboard').submit(function(e) {
@@ -285,19 +285,20 @@
 
 
             $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
-              console.log('O analista entrou na conversa: ' + conversation);
+              console.log('O analista entrou na conversa: ' + conversation.conversation);
+              chat.conversationId = conversation.conversation;
             });
 
             chat.currentUser = username;
 
             // hides the login screen
-            $('.lw-dashboard-container').hide();
+            $('.lw-dashboard-container').hide("slow");
 
             // join analyst to specified channel
             $.post('/users/' + channel + '/join', {'username': username}, function(response) {
               console.log('analista entrou no canal..');
-              $('.lw-dashboard-container').hide();
-              $('.lw-chat-container').show();
+              $('.lw-dashboard-container').hide("slow");
+              $('.lw-chat-container').show("slow");
             });
 
             // get the last waiting protocol
@@ -394,30 +395,37 @@
                       // if exists, creates a message on it.
                       // otherwise initiate a new conversation
 
-    //                  // creates a conversation between the users
-    //                  console.log('creating a new conversation..');
-    //                  $.post('/conversations', { participants: [username], queue: queue_name }, function(conversation) {
-    //                    if (typeof conversation != "undefined") {
-    //                      chat.conversationId = conversation.id;
 
-    //                      console.log('conversation created.');
-   //                       $('.lw-dashboard-container').show();
+        $('#chat').submit(function(e) {
+          e.preventDefault();
+          var message = $('#message').val();
 
-                          //hide form login
-   //                       $('.lw-login-container').hide();
+          var new_message = '<p>' + message + '</p>';
 
-                          // saves the conversation id on local storage
-     //                   }
-      //                  });
+          // creating a message
+          attributes = {
+            conversation: {
+              id: chat.conversationId,
+              sender: {
+                name: chat.currentUser
+              },
+              parts: [
+                {
+                  body: message,
+                  mime_type: 'text/plain'
+                }
+              ]
+            }
+          }
+
+          $.post('/messages', attributes, function(message) {
+            $('#message').val('');
+            $('#message')[0].focus();
+          });
+        });
 
       });
-                        // });
+    </script>
 
-                        // CHAT
-
-
-
-                      </script>
-
-                    </body>
-                  </html>
+    </body>
+</html>

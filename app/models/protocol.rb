@@ -8,6 +8,6 @@ class Protocol < ActiveRecord::Base
   end
 
   def self.next(protocols)
-    protocols.sample
+    protocols.last
   end
 end
