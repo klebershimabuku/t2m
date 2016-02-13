@@ -114,7 +114,7 @@
         margin: 0;
       }
 
-      .lw-message-content .message {
+      .lw-message-content .messages {
         margin: 0;
         font-size: 14px;
         margin: 10px;
@@ -268,8 +268,8 @@
           var username = $('#username').val();
           $('.username').attr('value', username);
 
-          $('.lw-login-container').hide("slow");
-          $('.lw-dashboard-container').show("slow");
+          $('.lw-login-container').hide();
+          $('.lw-dashboard-container').fadeIn();
         });
 
         $('#dashboard').submit(function(e) {
@@ -292,13 +292,13 @@
             chat.currentUser = username;
 
             // hides the login screen
-            $('.lw-dashboard-container').hide("slow");
+            $('.lw-dashboard-container').hide();
 
             // join analyst to specified channel
             $.post('/users/' + channel + '/join', {'username': username}, function(response) {
               console.log('analista entrou no canal..');
-              $('.lw-dashboard-container').hide("slow");
-              $('.lw-chat-container').show("slow");
+              $('.lw-dashboard-container').hide();
+              $('.lw-chat-container').fadeIn();
             });
 
             // get the last waiting protocol
