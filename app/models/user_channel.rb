@@ -11,9 +11,6 @@ class UserChannel < ActiveRecord::Base
     after_all_transitions :log_status_change
 
     event :answer do
-      before do
-        self.wait!
-      end
       transitions from: :waiting, to: :answering
     end
 
