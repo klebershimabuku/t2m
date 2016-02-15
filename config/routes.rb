@@ -9,9 +9,6 @@ Rails.application.routes.draw do
   post '/chat/:channel/next', to: 'chat#next'
   post '/chat/finalize', to: 'chat#finalize'
 
-  get '/users/queue', to: 'users#queue'
-  get '/users/queue/:queue/online', to: 'users#online'
-
   post '/users/:channel/join', to: 'users#join'
 
   post '/conversations', to: 'conversations#create'

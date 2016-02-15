@@ -2,10 +2,6 @@ class User < ActiveRecord::Base
   has_many :user_channels
   has_many :channels, through: :user_channels
 
-  def queue
-    'corporativo'
-  end
-
   def has_channels?
     self.user_channels.present?
   end
@@ -15,13 +11,11 @@ class User < ActiveRecord::Base
   end
 
   def enter_in_channel(name)
-    user_channel = user_channel_by_name
-    user_channel.answer! if user_channel.may_answer?
+    user_channel_by_name.answer!
   end
 
   def out_of_channel(name)
-    user_channel = user_channel_by_name
-    user_channel.wait! if user_channel.may_wait?
+    user_channel_by_name.wait!
   end
 
 end
