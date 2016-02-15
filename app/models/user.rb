@@ -15,7 +15,11 @@ class User < ActiveRecord::Base
   end
 
   def enter_in_channel(name)
-    user_channel_by_name.update(status: UserChannel::Statuses::ANSWERING)
+    user_channel_by_name.answer!
+  end
+
+  def out_of_channel(name)
+    user_channel_by_name.wait!
   end
 
 end

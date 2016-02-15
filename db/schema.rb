@@ -15,13 +15,9 @@ ActiveRecord::Schema.define(version: 20160211202503) do
 
   create_table "channels", force: :cascade do |t|
     t.string   "name"
-    t.string   "status"
-    t.integer  "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
-
-  add_index "channels", ["user_id"], name: "index_channels_on_user_id"
 
   create_table "protocols", force: :cascade do |t|
     t.string   "customer_login"
@@ -29,6 +25,7 @@ ActiveRecord::Schema.define(version: 20160211202503) do
     t.string   "conversation_id"
     t.string   "phone"
     t.string   "status"
+    t.date     "in_progress_at"
     t.date     "finalized_at"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
@@ -49,7 +46,6 @@ ActiveRecord::Schema.define(version: 20160211202503) do
 
   create_table "users", force: :cascade do |t|
     t.string   "login"
-    t.string   "type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

@@ -14,6 +14,9 @@ gem 'layer-ruby', require: 'layer'
 gem 'layer-identity_token'
 gem 'json-jwt'
 
+# StateMachine
+gem 'aasm'
+
 group :development, :test do
   gem 'pry'
   gem 'rspec-rails', '~> 3.0'
