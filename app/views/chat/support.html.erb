@@ -223,13 +223,13 @@
         </div>
         <div class="lw-chat-actions">
           <div class="lw-chat-send">
-            <input type="text" id="message" placeholder="send a message..." required/>
+            <input type="text" id="message" placeholder="send a message..." />
             <button class="lw-send">Enviar</button>
           </div>
           <div class="lw-other-actions">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ut distinctio in voluptatum aliquid, dicta libero sit. Expedita optio, praesentium, voluptate veritatis animi sapiente tempore. Quibusdam unde iusto quia, consectetur similique.</p>
-            <button class="lw-shut-up">Encerrar</button>
-            <button class="lw-next">Próximo</button>
+            <button class="lw-shut-up" id="finalize_chat">Encerrar</button>
+            <button class="lw-next" id="next_chat">Próximo</button>
           </div>
         </div>
       </form>
@@ -398,9 +398,17 @@
             return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
           }
 
-                      // finds an existent conversation on local storage
-                      // if exists, creates a message on it.
-                      // otherwise initiate a new conversation
+          $('#finalize_chat').submit(function(e) {
+            e.preventDefault();
+
+            attributes = {
+              id: chat.conversationId
+            }
+
+            $.post('/chat/finalize', attributes, function(response) {
+              console.log(response)
+            });
+          });
 
 
         $('#chat').submit(function(e) {

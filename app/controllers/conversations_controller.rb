@@ -9,8 +9,7 @@ class ConversationsController < ApplicationController
     protocol = Protocol.create(customer_login: username,
                                channel: channel,
                                conversation_id: conversation.id,
-                               phone: '(XX) 111-11111',
-                               status: Protocol::Statuses::WAITING)
+                               phone: '(XX) 111-11111')
 
     render json: { id: conversation.id }, status: 201
   end

@@ -6,6 +6,7 @@ class CreateProtocols < ActiveRecord::Migration
       t.string :conversation_id
       t.string :phone
       t.string :status
+      t.date :in_progress_at
       t.date :finalized_at
 
       t.timestamps null: false
