@@ -111,6 +111,7 @@
               ws.addEventListener('message', messageHandler);
               console.log('connection established.');
 
+              chat.conversationId = response.id;
               // hides the login screen
               $('.login').hide();
 

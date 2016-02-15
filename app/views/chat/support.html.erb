@@ -226,13 +226,14 @@
             <input type="text" id="message" placeholder="send a message..." />
             <button class="lw-send">Enviar</button>
           </div>
-          <div class="lw-other-actions">
+        </div>
+      </form>
+
+      <div class="lw-other-actions">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ut distinctio in voluptatum aliquid, dicta libero sit. Expedita optio, praesentium, voluptate veritatis animi sapiente tempore. Quibusdam unde iusto quia, consectetur similique.</p>
             <button class="lw-shut-up" id="finalize_chat">Encerrar</button>
             <button class="lw-next" id="next_chat">Próximo</button>
-          </div>
-        </div>
-      </form>
+      </div>
     </div>
     </section>
 
@@ -293,6 +294,8 @@
             });
 
             // get the last waiting protocol
+
+
             var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
             ws.addEventListener('message', messageHandler);
             console.log('connection established.');
@@ -398,7 +401,7 @@
             return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
           }
 
-          $('#finalize_chat').submit(function(e) {
+        $('#finalize_chat').click(function(e) {
             e.preventDefault();
 
             attributes = {
@@ -407,6 +410,10 @@
 
             $.post('/chat/finalize', attributes, function(response) {
               console.log(response)
+              chat.conversationId  = null;
+              $('.lw-chat-container').fadeOut();
+              $('.lw-dashboard-container').fadeIn();
+
             });
           });
 

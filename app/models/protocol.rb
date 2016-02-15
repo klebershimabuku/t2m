@@ -26,7 +26,7 @@ class Protocol < ActiveRecord::Base
     end
   end
 
-  scope :waiting, -> { where(status: 'waiting'.freeze).order(:created_at).limit(1) }
+  scope :waiting, -> { where(status: 'waiting'.freeze).order(created_at: :desc).limit(1) }
 
   def log_status_change
     Rails.logger.info "Protocol #{self.id} of customer #{self.customer_login} changed from #{aasm.from_state} to #{aasm.to_state}"

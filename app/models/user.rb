@@ -15,11 +15,13 @@ class User < ActiveRecord::Base
   end
 
   def enter_in_channel(name)
-    user_channel_by_name.answer!
+    user_channel = user_channel_by_name
+    user_channel.answer! if user_channel.may_answer?
   end
 
   def out_of_channel(name)
-    user_channel_by_name.wait!
+    user_channel = user_channel_by_name
+    user_channel.wait! if user_channel.may_wait?
   end
 
 end
