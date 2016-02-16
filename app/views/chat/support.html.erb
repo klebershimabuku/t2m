@@ -252,6 +252,14 @@
         $('.lw-dashboard-container').hide();
         $('.lw-chat-container').hide();
       });
+      var getSenderName = function(sender) {
+        if (sender.name == null) {
+          return sender.user_id;
+          } else {
+          return sender.name;
+        }
+      }
+
 
       $('#login').submit(function(e) {
         e.preventDefault();
@@ -277,6 +285,25 @@
             $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
               console.log('O analista entrou na conversa: ' + conversation.conversation);
               chat.conversationId = conversation.conversation;
+
+              //render previous messages
+              $.post('/conversations/messages', {conversation_id: chat.conversationId}, function(messages) {
+                $.each(messages, function(index, message) {
+                  parts = message.attributes.parts;
+                  var status_message = 'DELIVERING';
+                  sender_name = getSenderName(message.attributes.sender);
+                  $.each(parts, function(index,message) {
+                    var new_message = '<div class="lw-message-content lw-client">' +
+                      '<h2 class="lw-user">' +
+                        '<strong>' + sender_name + '</strong>' + ' disse: ' +
+                        '</h2>' +
+                      '<p class="messages">' + message.body + '</p>' +
+                      '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                      '</div>'
+                    chat.addMessage(new_message);
+                  });
+                });
+              });
             });
 
             chat.currentUser = username;
@@ -343,14 +370,6 @@
           }
 
           function handleCreateMessage(message) {
-            var getSenderName = function(sender) {
-              if (sender.name == null) {
-                return sender.user_id;
-                } else {
-                return sender.name;
-              }
-            }
-
             var sent_at = formatDateTime(message.data.sent_at);
             var parts = message.data.parts;
             var sender = message.data.sender;
