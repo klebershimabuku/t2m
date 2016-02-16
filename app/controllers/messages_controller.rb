@@ -1,8 +1,14 @@
 class MessagesController < ApplicationController
   def create
     conversation = Layer::Conversation.find(conversation_params[:id])
-    message = conversation.messages.create(message_params)
-    render json: message, status: 201
+
+    if !message_params[:parts][0]['body'].blank?
+      message = conversation.messages.create(message_params)
+      render json: message, status: 201
+    else
+      render text: 'body cant be blank', status: 422
+    end
+
   end
 
   def conversation_params
