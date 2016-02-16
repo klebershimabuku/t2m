@@ -1,18 +1,22 @@
 class AuthenticationController < ApplicationController
   def authenticate
-    user = params[:user_id]
 
-    client = Layer::Client.authenticate do |nonce|
-      Layer::IdentityToken.new(user, nonce)
-    end
-
-    # verifies if the user is support analyst
-    #
-    if User.find_by_login(user) # identifies as a support analyst
-
-    else # potential buyer or customer
-    end
-
-    render json: { session_token: client.token }
+   render json: { session_token: create_and_authenticate }
   end
+
+  def creator_service
+    Authenticate::CreatorService.new(@user)
+  end
+
+  def finder_service(user_id)
+    Authenticate::FinderService.new(user_id)
+  end
+
+  def create_and_authenticate
+    login = params.require(:user_id)
+    @user = finder_service(login).call
+    @user ||= User.create_with_login(login)
+
+    creator_service.token
+   end
 end

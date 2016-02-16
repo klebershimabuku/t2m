@@ -20,4 +20,8 @@ class User < ActiveRecord::Base
     user_channel.wait! if user_channel.may_wait?
   end
 
+  def self.create_with_login(login)
+    self.create(login: login)
+  end
+
 end
