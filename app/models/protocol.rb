@@ -26,6 +26,10 @@ class Protocol < ActiveRecord::Base
     end
   end
 
+  def duration
+    (self.finalized_at - self.created_at).round
+  end 
+
   scope :waiting, -> { where(status: 'waiting'.freeze).order(created_at: :desc).limit(1) }
 
   def log_status_change

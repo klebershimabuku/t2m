@@ -25,8 +25,8 @@ ActiveRecord::Schema.define(version: 20160211202503) do
     t.string   "conversation_id"
     t.string   "phone"
     t.string   "status"
-    t.date     "in_progress_at"
-    t.date     "finalized_at"
+    t.datetime "in_progress_at"
+    t.datetime "finalized_at"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
   end
