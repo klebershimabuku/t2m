@@ -14,4 +14,5 @@ class UsersController < ApplicationController
     render json: { channel: channel }, status: 200
   end
 
+
 end
