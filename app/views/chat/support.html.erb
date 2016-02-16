@@ -346,15 +346,25 @@
           }
 
           function handleCreateMessage(message) {
+            var getSenderName = function(sender) {
+              if (sender.name == null) {
+                return sender.user_id;
+                } else {
+                return sender.name;
+              }
+            }
+
             var sent_at = formatDateTime(message.data.sent_at);
             var parts = message.data.parts;
             var sender = message.data.sender;
             var status_message = 'DELIVERING';
 
+            sender_name = getSenderName(sender);
+
             $.each(parts, function(index,message) {
               var new_message = '<div class="lw-message-content">' +
                                   '<h2 class="lw-user">' +
-                                    '<strong>' + sender.name + '</strong>' + ' disse: ' +
+                                    '<strong>' + sender_name + '</strong>' + ' disse: ' +
                                   '</h2>' +
                                   '<p class="messages">' + message.body + '</p>' +
                                  '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
@@ -430,7 +440,7 @@
             conversation: {
               id: chat.conversationId,
               sender: {
-                name: chat.currentUser
+                user_id: chat.currentUser
               },
               parts: [
                 {
