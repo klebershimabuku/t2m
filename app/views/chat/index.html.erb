@@ -196,15 +196,40 @@
 
     <script>
       $(document).ready(function() {
-        $('.lw-chat-container').hide();
 
-        var chat = {
+        chat = {
           currentUser: null,
           conversationId: null,
+          currentSessionToken: null,
+
+          start: function() {
+            $('.lw-chat-container').hide();
+            $('.lw-login').show();
+          },
+
           addMessage: function(message) {
            $('.lw-chat').append(message)
+          },
+
+          logout: function() {
+            // expire session token
+            $.ajax({
+              url:'https://api.layer.com/sessions/' + chat.currentSessionToken,
+              type: 'DELETE',
+              beforeSend: function(request) {
+                request.setRequestHeader('Authorization', 'Layer session-token=' + chat.currentSessionToken);
+                request.setRequestHeader('Accept', 'application/vnd.layer+json; version=1.0');
+                request.setRequestHeader('Content-Type', 'application/json');
+              },
+              success: function(response) {
+                console.log('session token was expired with success.');
+                chat.start();
+              }
+            });
           }
         };
+
+        chat.start();
 
         $('#login').submit(function(e) {
           e.preventDefault();
@@ -213,11 +238,11 @@
 
           // get a session token
           $.get('/authenticate' + '?user_id=' + username, function(user) {
-            var session_token = user.session_token;
-            console.log(session_token);
+            var sessionToken = user.session_token;
+            console.log(sessionToken);
 
+            chat.currentSessionToken = sessionToken;
             chat.currentUser = username;
-
 
             // creates a new protocol.
             attributes = {
@@ -226,7 +251,7 @@
             };
 
             $.post('/conversations/', attributes, function(response) {
-              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
+              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + sessionToken, 'layer-1.0');
               ws.addEventListener('message', messageHandler);
               console.log('connection established.');
 
@@ -242,7 +267,6 @@
           function messageHandler(event) {
             var message = JSON.parse(event.data);
             var body = message.body;
-              console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
 
             switch(message.type) {
               case "change":
@@ -276,8 +300,15 @@
                 case "patch":
                   console.log("WEBSOCKET PATCH: " + message.object.id);
                   console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
-                  break;
+                  switch(message.object.type) {
+                    case "Message":
+                      // handleUpdateMessage(message);
+                      break;
+                    case "Conversation":
+                      handleUpdateConversation(message);
+                  }
 
+                  break;
               }
             } catch(e) {
               console.error("layer-patch Error: " + e);
@@ -318,6 +349,58 @@
             chat.addMessage(new_message);
           }
 
+          /*
+           Verifies if the currentUser is present on the participants list, if it is not present,
+           it indicates that the counter-part has closed the conversation and we need to expire the sessionToken for
+           the currentUser
+          */
+          function handleUpdateConversation(message) {
+            console.log('conversation updated.');
+            // returns an array of data's. It may returns a operation kind "remove", "add", probably some others.
+            console.log("MESSAGE RECEIVED: " + JSON.stringify(message, false, 4));
+            console.log("MESSAGE DATA: " + message['data'])
+
+            $.each(message['data'], function(index, message_data) {
+              switch(message_data['operation']) {
+                case "add":
+                  // handle add operation
+                  // it may be adding a new participant or maybe some other property.
+                  console.log('adicionou um participante..');
+                  break;
+
+                case "remove":
+                  switch(message_data['property']) {
+                    case "participants":
+                      handleRemoveParticipants(message_data);
+                  }
+
+                  break;
+              }
+
+            });
+          }
+
+          /*
+          message format:
+
+                {
+                  "operation": "remove",
+                  "property": "participants",
+                  "value": "shima"
+                }
+
+          */
+          function handleRemoveParticipants(message) {
+            console.log('here we removes the customer logged');
+
+            var participants = message.value;
+            console.log(message.value);
+            if (participants.indexOf(chat.currentUser) == -1) {
+              console.log('it seems the chat was closed by the analyst.');
+              chat.logout();
+            }
+          }
+
           function createdBy(current_user, participants) {
             for (var i=participants.length-1; i>=0; i--) {
               if (participants[i] === chat.currentUser) {
@@ -342,7 +425,6 @@
         $('#chat').submit(function(e) {
           e.preventDefault();
           var message = $('#message').val();
-
           var new_message = '<p>' + message + '</p>';
 
           // creating a message

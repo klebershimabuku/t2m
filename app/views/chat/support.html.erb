@@ -239,42 +239,40 @@
 
     <script>
 
-      // LOGIN
+      var chat = {
+        currentUser: null,
+        conversationId: null,
+        addMessage: function(message) {
+          $('.lw-chat').append(message)
+        }
+      };
 
+      // LOGIN
       $(document).ready(function() {
         $('.lw-dashboard-container').hide();
         $('.lw-chat-container').hide();
       });
 
-        var chat = {
-          currentUser: null,
-          conversationId: null,
-          addMessage: function(message) {
-            $('.lw-chat').append(message)
-          }
-        };
+      $('#login').submit(function(e) {
+        e.preventDefault();
 
-        $('#login').submit(function(e) {
-          e.preventDefault();
+        var username = $('#username').val();
+        $('.username').attr('value', username);
 
-          var username = $('#username').val();
-          $('.username').attr('value', username);
-
-          $('.lw-login-container').hide();
-          $('.lw-dashboard-container').fadeIn();
-        });
+        $('.lw-login-container').hide();
+        $('.lw-dashboard-container').fadeIn();
+      });
 
         $('#dashboard').submit(function(e) {
           e.preventDefault();
-          var channel = $('.channel').val();
 
+          var channel = $('.channel').val();
           var username = $('.username').val();
 
           // get a session token
           $.get('/authenticate' + '?user_id=' + username, function(user) {
             var session_token = user.session_token;
             console.log(session_token);
-
 
             $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
               console.log('O analista entrou na conversa: ' + conversation.conversation);
@@ -304,7 +302,6 @@
           function messageHandler(event) {
             var message = JSON.parse(event.data);
             var body = message.body;
-            console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
 
             switch(message.type) {
               case "change":
@@ -405,7 +402,8 @@
             e.preventDefault();
 
             attributes = {
-              id: chat.conversationId
+              id: chat.conversationId,
+              username: chat.currentUser
             }
 
             $.post('/chat/finalize', attributes, function(response) {
@@ -414,7 +412,6 @@
               $('.lw-chat-container').fadeOut();
               $('.lw-message-content').remove();
               $('.lw-dashboard-container').fadeIn();
-
             });
           });
 
