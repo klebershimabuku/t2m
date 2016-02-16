@@ -6,25 +6,36 @@ class ChatController < ApplicationController
   end
 
   def next
-    username  = params[:username]
-    protocols = Channel.find_protocols_by_channel(params[:channel])
-    protocol  = Protocol.next
-    protocol.add_participant_into_conversation(username)
+    protocol = protocol_finder_service.next
+    join_service(protocol).join(params.require(:channel))
 
     render json: { conversation: protocol.conversation_id }, status: 200
   end
 
   def has_protocols?
-    channel = params[:channel]
-    render json: { has_protocols:  Protocol.waiting_in_channel(channel).any? }, status: 200
+    protocols = Protocol.waiting_in_channel(params.require(:channel))
+
+    render json: { has_protocols: protocols.any? }, status: 200
   end
 
   def finalize
-    conversation_id = params[:id]
-    protocol = Protocol.find_by_conversation_id(conversation_id)
-    protocol.finalize!
-    protocol.remove_participant_from_conversation(params[:username])
-    User.find_by_login(params[:username]).out_of_channel(protocol.channel.name)
+    protocol = protocol_finder_service.find_by_conversation(params.require(:id))
+    protocol_finalizer_service(protocol).finalize
+
+    join_service(protocol).out(protocol.channel.name)
+
     render json: { text: "Protocol #{protocol.id} finalized with success" }
+  end
+
+  def join_service(protocol)
+    Chat::JoinService.new(params.require(:login), protocol)
+  end
+
+  def protocol_finder_service
+    Protocol::FinderService.new
+  end
+
+  def protocol_finalizer_service(protocol)
+    Protocol::FinalizerService.new(protocol)
   end
 end

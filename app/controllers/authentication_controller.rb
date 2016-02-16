@@ -1,6 +1,5 @@
 class AuthenticationController < ApplicationController
   def authenticate
-
    render json: { session_token: create_and_authenticate }
   end
 

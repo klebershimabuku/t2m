@@ -311,7 +311,7 @@
                 if (!response.has_protocols) {
                   $('.lw-status-queue').fadeIn();
                 } else {
-                  $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
+                  $.post('/chat/' + channel + '/next', {login: username, channel: channel}, function(conversation) {
                       console.log('O analista entrou na conversa: ' + conversation.conversation);
                       chat.conversationId = conversation.conversation;
 
@@ -339,13 +339,7 @@
 
                   // hides the login screen
                   $('.lw-dashboard-container').hide();
-
-                  // join analyst to specified channel
-                  $.post('/users/' + channel + '/join', {'username': username}, function(response) {
-                    console.log('analista entrou no canal..');
-                    $('.lw-dashboard-container').hide();
-                    $('.lw-chat-container').fadeIn();
-                  });
+                  $('.lw-chat-container').fadeIn();
 
                   // get the last waiting protocol
                   var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
@@ -460,7 +454,7 @@
 
             attributes = {
               id: chat.conversationId,
-              username: chat.currentUser
+              login: chat.currentUser
             }
 
             $.post('/chat/finalize', attributes, function(response) {
