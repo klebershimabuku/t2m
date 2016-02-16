@@ -195,277 +195,316 @@
     </section>
 
     <script>
-      $(document).ready(function() {
+      var chat = {
+        currentUser: null,
+        conversationId: null,
+        currentSessionToken: null,
+        connection: null,
 
-        var chat = {
-          currentUser: null,
-          conversationId: null,
-          currentSessionToken: null,
-          connection: null,
+        start: function() {
+          $('.lw-chat-container').hide();
+          $('.lw-login').show();
+          $('#login').show();
+          $('.lw-message-content').remove();
+        },
 
-          start: function() {
-            $('.lw-chat-container').hide();
-            $('.lw-login').show();
-            $('#login').show();
-            $('.lw-message-content').remove();
-          },
+        addMessage: function(message) {
+          $('.lw-chat').append(message)
+        },
 
-          addMessage: function(message) {
-           $('.lw-chat').append(message)
-          },
-
-          logout: function() {
-            // expire session token
-            $.ajax({
-              url:'https://api.layer.com/sessions/' + chat.currentSessionToken,
-              type: 'DELETE',
-              beforeSend: function(request) {
-                request.setRequestHeader('Authorization', 'Layer session-token=' + chat.currentSessionToken);
-                request.setRequestHeader('Accept', 'application/vnd.layer+json; version=1.0');
-                request.setRequestHeader('Content-Type', 'application/json');
-              },
-              success: function(response) {
-                console.log('closing connection..');
-                chat.connection.close();
-                console.log('session token was expired with success.');
-                chat.start();
-              }
-            });
-          }
-        };
-
-        chat.start();
-
-        $('#login').submit(function(e) {
-          e.preventDefault();
-          var channel  = $('#channel').val();
-          var username = $('#username').val();
-
-          // get a session token
-          $.get('/authenticate' + '?user_id=' + username, function(user) {
-            var sessionToken = user.session_token;
-            console.log(sessionToken);
-
-            chat.currentSessionToken = sessionToken;
-            chat.currentUser = username;
-
-            // creates a new protocol.
-            attributes = {
-              'channel': channel,
-              'username': username
-            };
-
-            $.post('/conversations/', attributes, function(response) {
-              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + sessionToken, 'layer-1.0');
-              ws.addEventListener('message', messageHandler);
-              chat.connection = ws;
-              console.log('connection established.');
-
-              chat.conversationId = response.id;
-              // hides the login screen
-              $('.login').hide();
-
-              // displays chat screen
-              $('.lw-chat-container').show();
-            });
-          });
-
-          function messageHandler(event) {
-            var message = JSON.parse(event.data);
-            var body = message.body;
-
-            switch(message.type) {
-              case "change":
-                handleChange(body);
-                break;
+        logout: function() {
+          // expire session token
+          $.ajax({
+            url:'https://api.layer.com/sessions/' + chat.currentSessionToken,
+            type: 'DELETE',
+            beforeSend: function(request) {
+              request.setRequestHeader('Authorization', 'Layer session-token=' + chat.currentSessionToken);
+              request.setRequestHeader('Accept', 'application/vnd.layer+json; version=1.0');
+              request.setRequestHeader('Content-Type', 'application/json');
+            },
+            success: function(response) {
+              console.log('closing connection..');
+              chat.connection.close();
+              console.log('session token was expired with success.');
+              chat.start();
             }
+          });
+        }
+      };
+
+      $(document).ready(function() {
+        chat.start();
+      });
+
+      /*
+      This function handles the form
+      login submit.
+      */
+      $('#login').submit(function(e) {
+        e.preventDefault();
+        var channel  = $('#channel').val();
+        var username = $('#username').val();
+
+        // get a session token
+        $.get('/authenticate' + '?user_id=' + username, function(user) {
+          var sessionToken = user.session_token;
+          console.log(sessionToken);
+
+          chat.currentSessionToken = sessionToken;
+          chat.currentUser = username;
+
+          // creates a new protocol.
+          attributes = {
+            'channel': channel,
+            'username': username
           };
 
-          // message can be a Message type or a Conversation type.
-          function handleChange(message) {
-            try {
-              switch(message.operation) {
-                case "create":
-                  console.log("WEBSOCKET CREATE: " + message.object.id);
-                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
-                  switch(message.object.type) {
-                    case "Message":
-                      handleCreateMessage(message);
-                      break;
-                    case "Conversation":
-                      handleCreateConversation(message);
-                  }
+          $.post('/conversations/', attributes, function(response) {
+            var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + sessionToken, 'layer-1.0');
+            ws.addEventListener('message', messageHandler);
+            chat.connection = ws;
+            console.log('connection established.');
 
-                  break;
+            chat.conversationId = response.id;
+            // hides the login screen
+            $('.login').hide();
 
-                case "delete":
-                  console.log("WEBSOCKET DELETE: " + message.object.id);
-                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
-                  break;
-
-                case "patch":
-                  console.log("WEBSOCKET PATCH: " + message.object.id);
-                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
-                  switch(message.object.type) {
-                    case "Message":
-                      // handleUpdateMessage(message);
-                      break;
-                    case "Conversation":
-                      handleUpdateConversation(message);
-                  }
-
-                  break;
-              }
-            } catch(e) {
-              console.error("layer-patch Error: " + e);
-            }
-          }
-
-          function handleCreateMessage(message) {
-            var getSenderName = function(sender) {
-              if (sender.name == null) {
-                return sender.user_id;
-                } else {
-                return sender.name;
-              }
-            }
-            var sent_at = formatDateTime(message.data.sent_at);
-            var parts = message.data.parts;
-            var sender = message.data.sender;
-            var status_message = 'DELIVERING';
-
-            sender_name = getSenderName(sender);
-
-            $.each(parts, function(index,message) {
-              var new_message = '<div class="lw-message-content lw-client">' +
-                                  '<h2 class="lw-user">' +
-                                    '<strong>' + sender_name + '</strong>' + ' disse: ' +
-                                  '</h2>' +
-                                  '<p class="messages">' + message.body + '</p>' +
-                                 '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
-                                '</div>'
-              chat.addMessage(new_message);
-            });
-          }
-
-          function handleCreateConversation(message) {
-            var participants = message.data.participants;
-            var created_at = formatDateTime(message.data.created_at);
-            var created_by = createdBy(chat.currentUser, participants);
-              var new_message =   '<div class="lw-message-content">' +
-                                  '<h2 class="lw-user">' +
-                                    '<strong>' + created_by + '</strong>' + ' disse: ' +
-                                  '</h2>' +
-                                  '<p class="messages">' + 'Oi, eu sou Goku! Em que posso ajudar?' + '</p>' +
-                                 '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
-                                '</div>'
-
-            chat.conversationId = message.data.id;
-            chat.addMessage(new_message);
-          }
-
-          /*
-           Verifies if the currentUser is present on the participants list, if it is not present,
-           it indicates that the counter-part has closed the conversation and we need to expire the sessionToken for
-           the currentUser
-          */
-          function handleUpdateConversation(message) {
-            console.log('conversation updated.');
-            // returns an array of data's. It may returns a operation kind "remove", "add", probably some others.
-            console.log("MESSAGE RECEIVED: " + JSON.stringify(message, false, 4));
-            console.log("MESSAGE DATA: " + message['data'])
-
-            $.each(message['data'], function(index, message_data) {
-              switch(message_data['operation']) {
-                case "add":
-                  // handle add operation
-                  // it may be adding a new participant or maybe some other property.
-                  console.log('adicionou um participante..');
-                  break;
-
-                case "remove":
-                  switch(message_data['property']) {
-                    case "participants":
-                      handleRemoveParticipants(message_data);
-                  }
-
-                  break;
-              }
-
-            });
-          }
-
-          /*
-          message format:
-
-                {
-                  "operation": "remove",
-                  "property": "participants",
-                  "value": "shima"
-                }
-
-          */
-          function handleRemoveParticipants(message) {
-            console.log('here we removes the customer logged');
-
-            var participants = message.value;
-            console.log(message.value);
-            if (participants.indexOf(chat.currentUser) == -1) {
-              console.log('it seems the chat was closed by the analyst.');
-              chat.logout();
-            }
-          }
-
-          function createdBy(current_user, participants) {
-            for (var i=participants.length-1; i>=0; i--) {
-              if (participants[i] === chat.currentUser) {
-                participants.splice(1, 1);
-                return participants[0];
-              }
-            }
-          }
-
-          function formatDateTime(datetime) {
-            var date = new Date(datetime);
-            var dateString = date.toLocaleDateString();
-            var hours = date.getHours();
-            var minutes = date.getMinutes();
-            var seconds = date.getSeconds();
-
-            return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
-          }
-
-        });
-
-        $('#chat').submit(function(e) {
-          e.preventDefault();
-          var message = $('#message').val();
-          var new_message = '<p>' + message + '</p>';
-
-          // creating a message
-          attributes = {
-            conversation: {
-              id: chat.conversationId,
-              sender: {
-                user_id: chat.currentUser
-              },
-              parts: [
-                {
-                  body: message,
-                  mime_type: 'text/plain'
-                }
-              ]
-            }
-          }
-
-          //Post Message
-          $.post('/messages', attributes, function(message) {
-            $('#message').val('');
-            $('#message')[0].focus();
+            // displays chat screen
+            $('.lw-chat-container').show();
           });
         });
-
       });
+
+      /*
+      This function handles the
+      message.
+      */
+      function messageHandler(event) {
+        var message = JSON.parse(event.data);
+        var body = message.body;
+
+        switch(message.type) {
+          case "change":
+            handleChange(body);
+            break;
+        }
+      };
+
+      /*
+      This function handles the
+      changes on a message.
+
+      Message types:
+      - "Message"
+      - "Conversation"
+      */
+      function handleChange(message) {
+        try {
+          switch(message.operation) {
+            case "create":
+              console.log("WEBSOCKET CREATE: " + message.object.id);
+              console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+              switch(message.object.type) {
+                case "Message":
+                  handleCreateMessage(message);
+                  break;
+                case "Conversation":
+                  handleCreateConversation(message);
+              }
+
+              break;
+
+            case "delete":
+              console.log("WEBSOCKET DELETE: " + message.object.id);
+              console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+              break;
+
+            case "patch":
+              console.log("WEBSOCKET PATCH: " + message.object.id);
+              console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+              switch(message.object.type) {
+                case "Message":
+                  // handleUpdateMessage(message);
+                  break;
+                case "Conversation":
+                  handleUpdateConversation(message);
+              }
+
+              break;
+          }
+        } catch(e) {
+          console.error("layer-patch Error: " + e);
+        }
+      }
+
+      /*
+      This function handles
+      the message create process.
+      */
+      function handleCreateMessage(message) {
+        var getSenderName = function(sender) {
+          if (sender.name == null) {
+            return sender.user_id;
+            } else {
+            return sender.name;
+          }
+        }
+        var sent_at = formatDateTime(message.data.sent_at);
+        var parts = message.data.parts;
+        var sender = message.data.sender;
+        var status_message = 'DELIVERING';
+
+        sender_name = getSenderName(sender);
+
+        $.each(parts, function(index,message) {
+          var new_message = '<div class="lw-message-content lw-client">' +
+                              '<h2 class="lw-user">' +
+                                '<strong>' + sender_name + '</strong>' + ' disse: ' +
+                              '</h2>' +
+                              '<p class="messages">' + message.body + '</p>' +
+                              '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                            '</div>'
+          chat.addMessage(new_message);
+        });
+      }
+
+      /*
+        This function handles
+        the conversation create process
+      */
+      function handleCreateConversation(message) {
+        var participants = message.data.participants;
+        var created_at = formatDateTime(message.data.created_at);
+        var created_by = createdBy(chat.currentUser, participants);
+          var new_message =   '<div class="lw-message-content">' +
+                              '<h2 class="lw-user">' +
+                                '<strong>' + created_by + '</strong>' + ' disse: ' +
+                              '</h2>' +
+                              '<p class="messages">' + 'Oi, eu sou Goku! Em que posso ajudar?' + '</p>' +
+                              '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                            '</div>'
+
+        chat.conversationId = message.data.id;
+        chat.addMessage(new_message);
+      }
+
+      /*
+        This function verifies if the currentUser is present on the participants list, if it is not present,
+        it indicates that the counter-part has closed the conversation and we need to expire the sessionToken for
+        the currentUser
+      */
+      function handleUpdateConversation(message) {
+        console.log('conversation updated.');
+        // returns an array of data's. It may returns a operation kind "remove", "add", probably some others.
+        console.log("MESSAGE RECEIVED: " + JSON.stringify(message, false, 4));
+        console.log("MESSAGE DATA: " + message['data'])
+
+        $.each(message['data'], function(index, message_data) {
+          switch(message_data['operation']) {
+            case "add":
+              // handle add operation
+              // it may be adding a new participant or maybe some other property.
+              console.log('adicionou um participante..');
+              break;
+
+            case "remove":
+              switch(message_data['property']) {
+                case "participants":
+                  handleRemoveParticipants(message_data);
+              }
+
+              break;
+          }
+
+        });
+      }
+
+      /*
+        This function handles the
+        remove of the participant from a conversation,
+
+        message format:
+
+        {
+          "operation": "remove",
+          "property": "participants",
+          "value": "shima"
+        }
+
+      */
+      function handleRemoveParticipants(message) {
+        console.log('here we removes the customer logged');
+
+        var participants = message.value;
+        console.log(message.value);
+        if (participants.indexOf(chat.currentUser) == -1) {
+          console.log('it seems the chat was closed by the analyst.');
+          chat.logout();
+        }
+      }
+
+      /*
+        This function handles to
+        obtain the author of the message
+      */
+      function createdBy(current_user, participants) {
+        for (var i=participants.length-1; i>=0; i--) {
+          if (participants[i] === chat.currentUser) {
+            participants.splice(1, 1);
+            return participants[0];
+          }
+        }
+      }
+
+      /*
+        This function handles
+        the date time format of the message
+      */
+      function formatDateTime(datetime) {
+        var date = new Date(datetime);
+        var dateString = date.toLocaleDateString();
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var seconds = date.getSeconds();
+
+        return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
+      }
+
+
+      /*
+        This function handles
+        the submit of a message
+      */
+      $('#chat').submit(function(e) {
+        e.preventDefault();
+        var message = $('#message').val();
+        var new_message = '<p>' + message + '</p>';
+
+        $('#message').val('');
+
+        // creating a message
+        attributes = {
+          conversation: {
+            id: chat.conversationId,
+            sender: {
+              user_id: chat.currentUser
+            },
+            parts: [
+              {
+                body: message,
+                mime_type: 'text/plain'
+              }
+            ]
+          }
+        }
+
+        //Post Message
+        $.post('/messages', attributes, function(message) {
+          $('#message').val('');
+          $('#message')[0].focus();
+        });
+      });
+
     </script>
   </body>
 </html>
