@@ -15,10 +15,10 @@ class ChatController < ApplicationController
   end
 
   def finalize
-    conversationId = params[:id]
-    protocol = Protocol.find_by_conversation_id(conversationId)
+    conversation_id = params[:id]
+    protocol = Protocol.find_by_conversation_id(conversation_id)
     protocol.finalize!
 
-    render json: { text: "Prococol #{protocol.id} finalized with success" }
+    render json: { text: "Protocol #{protocol.id} finalized with success" }
   end
 end
