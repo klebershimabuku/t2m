@@ -26,7 +26,13 @@ class Protocol < ActiveRecord::Base
     end
   end
 
+  def duration
+    (self.finalized_at - self.created_at).round
+  end 
+
   scope :waiting, -> { where(status: 'waiting'.freeze).order(created_at: :desc).limit(1) }
+
+  scope :waiting_in_channel, -> (channel){ joins(:channel).where(status: 'waiting'.freeze, 'channels.name' => channel) }
 
   def log_status_change
     Rails.logger.info "Protocol #{self.id} of customer #{self.customer_login} changed from #{aasm.from_state} to #{aasm.to_state}"
@@ -44,9 +50,14 @@ class Protocol < ActiveRecord::Base
     conversation.save
   end
 
-  def self.next
-    protocol = self.waiting.first
+  def self.waiting_in_channel_3(channel)
+    self.waiting_in_channel_2(channel)
+  end
+
+  def self.next(channel = 'corporativo')
+    protocol = self.waiting_in_channel(channel).first
     protocol.progress!
     protocol
   end
+
 end

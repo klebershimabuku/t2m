@@ -167,6 +167,22 @@
         font-weight: 700;
         text-transform: uppercase;
       }
+
+      .lw-status-queue {
+        display: none;
+        background-color: #FD6161;
+        border-radius: 3px;
+      }
+
+      .lw-status-queue p {
+        padding: 10px;
+        color: #fff;
+      }
+
+      .lw-welcome {
+        background-color: rgba(155, 77, 202, 0.16) !important;
+      }
+
     </style>
   </head>
   <body>
@@ -190,6 +206,9 @@
       <hr>
       </header>
       <div class="lw-dashboard">
+        <div class="lw-status-queue">
+          <p>Não existem <strong>atendimentos</strong> no momento.</p>
+        </div>
         <form id="dashboard" class="lw-form">
           <h2 class="lw-queue-title">Fila de Atendimento</h2>
           <ul class="lw-queue">
@@ -238,22 +257,19 @@
     </section>
 
     <script>
-
       var chat = {
         currentUser: null,
         conversationId: null,
         connection: null,
-        currentSessionToken: null,
 
         addMessage: function(message) {
           $('.lw-chat').append(message)
         },
 
         logout: function() {
-          console.log('closing connection..');
-          this.connection.close();
+          connection.close();
         }
-      };
+      }
 
       // LOGIN
       $(document).ready(function() {
@@ -279,218 +295,209 @@
         $('.lw-dashboard-container').fadeIn();
       });
 
-        $('#dashboard').submit(function(e) {
-          e.preventDefault();
+      $('#dashboard').submit(function(e) {
+        e.preventDefault();
 
-          var channel = $('.channel').val();
-          var username = $('.username').val();
+        var channel = $('.channel').val();
+        var username = $('.username').val();
 
-          // get a session token
-          $.get('/authenticate' + '?user_id=' + username, function(user) {
-            var session_token = user.session_token;
-            chat.currentSessionToken = session_token;
-            console.log(session_token);
+        // get a session token
+        $.get('/authenticate' + '?user_id=' + username, function(user) {
+          var session_token = user.session_token;
+          console.log(session_token);
 
-            $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
-              console.log('O analista entrou na conversa: ' + conversation.conversation);
-              chat.conversationId = conversation.conversation;
+          $.get('/chat/' + channel + '/has_protocols', function (response){
+            if (!response.has_protocols) {
+              $('.lw-status-queue').fadeIn();
+            } else {
+              $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
+                console.log('O analista entrou na conversa: ' + conversation.conversation);
+                chat.conversationId = conversation.conversation;
 
-              //render previous messages
-              $.post('/conversations/messages', {conversation_id: chat.conversationId}, function(messages) {
-                $.each(messages, function(index, message) {
-                  parts = message.attributes.parts;
-                  var status_message = 'DELIVERING';
-                  sender_name = getSenderName(message.attributes.sender);
-
-                  $.each(parts, function(index,message) {
-                    var new_message = '<div class="lw-message-content lw-client">' +
-                      '<h2 class="lw-user">' +
-                        '<strong>' + sender_name + '</strong>' + ' disse: ' +
-                        '</h2>' +
-                      '<p class="messages">' + message.body + '</p>' +
-                      '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
-                      '</div>'
-
-                    chat.addMessage(new_message);
+                //render previous messages
+                $.post('/conversations/messages', {conversation_id: chat.conversationId}, function(messages) {
+                  $.each(messages, function(index, message) {
+                    parts = message.attributes.parts;
+                    var status_message = 'DELIVERING';
+                    sender_name = getSenderName(message.attributes.sender);
+                    $.each(parts, function(index,message) {
+                      var new_message = '<div class="lw-message-content lw-client">' +
+                        '<h2 class="lw-user">' +
+                          '<strong>' + sender_name + '</strong>' + ' disse: ' +
+                          '</h2>' +
+                        '<p class="messages">' + message.body + '</p>' +
+                        '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                        '</div>'
+                      chat.addMessage(new_message);
+                    });
                   });
                 });
               });
-            });
 
-            chat.currentUser = username;
+              chat.currentUser = username;
 
-            // hides the login screen
-            $('.lw-dashboard-container').hide();
-
-            // join analyst to specified channel
-            $.post('/users/' + channel + '/join', {'username': username}, function(response) {
-              console.log('analista entrou no canal..');
+              // hides the login screen
               $('.lw-dashboard-container').hide();
-              $('.lw-chat-container').fadeIn();
-            });
 
-            connect();
+              // join analyst to specified channel
+              $.post('/users/' + channel + '/join', {'username': username}, function(response) {
+                console.log('analista entrou no canal..');
+                $('.lw-dashboard-container').hide();
+                $('.lw-chat-container').fadeIn();
+              });
 
-          }); // authenticate
-        });
+              // get the last waiting protocol
+              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
+              ws.addEventListener('message', messageHandler);
+              console.log('connection established.');
+            } // if
+          }); // get
+        }); // authenticate
+      }); // dashboard
 
-          function connect() {
-            var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + chat.currentSessionToken, 'layer-1.0');
-            ws.addEventListener('message', messageHandler);
-            chat.connection = ws;
-            console.log('connection established.');
-          }
+      function messageHandler(event) {
+        var message = JSON.parse(event.data);
+        var body = message.body;
 
-          function messageHandler(event) {
-            var message = JSON.parse(event.data);
-            var body = message.body;
+        switch(message.type) {
+          case "change":
+          handleChange(body);
+          break;
+        }
+      }
 
-            switch(message.type) {
-              case "change":
-              handleChange(body);
+      // message can be a Message type or a Conversation type.
+      function handleChange(message) {
+        try {
+          switch(message.operation) {
+            case "create":
+            console.log("WEBSOCKET CREATE: " + message.object.id);
+            console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+            switch(message.object.type) {
+              case "Message":
+              handleCreateMessage(message);
               break;
+              case "Conversation":
+              handleCreateConversation(message);
             }
-          };
 
-          // message can be a Message type or a Conversation type.
-          function handleChange(message) {
-            try {
-              switch(message.operation) {
-                  case "create":
-                    console.log("WEBSOCKET CREATE: " + message.object.id);
-                    console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
-                    switch(message.object.type) {
-                        case "Message":
-                          handleCreateMessage(message);
-                          break;
-                        case "Conversation":
-                          handleCreateConversation(message);
-                    }
-                    break;
+            break;
 
-                case "delete":
-                  console.log("WEBSOCKET DELETE: " + message.object.id);
-                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
-                  break;
+            case "delete":
+            console.log("WEBSOCKET DELETE: " + message.object.id);
+            console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+            break;
 
-                case "patch":
-                  console.log("WEBSOCKET PATCH: " + message.object.id);
-                  console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
-                  break;
-
-              }
-            } catch(e) {
-              console.error("layer-patch Error: " + e);
-            }
+            case "patch":
+            console.log("WEBSOCKET PATCH: " + message.object.id);
+            console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
+            break;
           }
+          } catch(e) {
+          console.error("layer-patch Error: " + e);
+        }
+      }
 
-          function handleCreateMessage(message) {
-            var sent_at = formatDateTime(message.data.sent_at);
-            var parts = message.data.parts;
-            var sender = message.data.sender;
-            var status_message = 'DELIVERING';
+      function handleCreateMessage(message) {
+        var sent_at = formatDateTime(message.data.sent_at);
+        var parts = message.data.parts;
+        var sender = message.data.sender;
+        var status_message = 'DELIVERING';
 
-            sender_name = getSenderName(sender);
+        sender_name = getSenderName(sender);
 
-            $.each(parts, function(index,message) {
-              var new_message = '<div class="lw-message-content">' +
-                                  '<h2 class="lw-user">' +
-                                    '<strong>' + sender_name + '</strong>' + ' disse: ' +
-                                  '</h2>' +
-                                  '<p class="messages">' + message.body + '</p>' +
-                                 '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
-                                '</div>'
+        $.each(parts, function(index,message) {
+          var new_message = '<div class="lw-message-content">' +
+            '<h2 class="lw-user">' +
+              '<strong>' + sender_name + '</strong>' + ' disse: ' +
+              '</h2>' +
+            '<p class="messages">' + message.body + '</p>' +
+            '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+            '</div>';
 
 
-              chat.addMessage(new_message);
-            });
+          chat.addMessage(new_message);
+        });
+      }
+
+      function handleCreateConversation(message) {
+        var participants = message.data.participants;
+        var created_at = formatDateTime(message.data.created_at);
+        var created_by = createdBy(chat.currentUser, participants);
+        var status_message = 'DELIVERING';
+        var new_message =   '<div class="lw-message-content">' +
+                              '<p class="messages lw-welcome">' + 'Você iniciou uma conversa com o cliente ' + '<strong>' + created_by + '</strong>' + '</p>' +
+                              '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                            '</div>';
+
+        chat.conversationId = message.data.id;
+        chat.addMessage(new_message);
+      }
+
+      function createdBy(current_user, participants) {
+        for (var i=participants.length-1; i>=0; i--) {
+          if (participants[i] === chat.currentUser) {
+            participants.splice(1, 1);
+            return participants[0];
           }
+        }
+      }
 
-          function handleCreateConversation(message) {
-            var participants = message.data.participants;
-            var created_at = formatDateTime(message.data.created_at);
-            var created_by = createdBy(chat.currentUser, participants);
-            var status_message = 'DELIVERING';
-            var new_message =   '<div class="lw-message-content">' +
-                                  '<h2 class="lw-user">' +
-                                    '<strong>' + created_by + '</strong>' + ' disse: ' +
-                                  '</h2>' +
-                                  '<p class="messages">' + 'Oi, eu sou Goku! Em que posso ajudar?' + '</p>' +
-                                 '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
-                                '</div>'
+      function formatDateTime(datetime) {
+        var date = new Date(datetime);
+        var dateString = date.toLocaleDateString();
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var seconds = date.getSeconds();
 
-            chat.conversationId = message.data.id;
-            chat.addMessage(new_message);
-          }
+        return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
+      }
 
-          function createdBy(current_user, participants) {
-            for (var i=participants.length-1; i>=0; i--) {
-              if (participants[i] === chat.currentUser) {
-                participants.splice(1, 1);
-                return participants[0];
-              }
-            }
-          }
+      $('#finalize_chat').click(function(e) {
+        e.preventDefault();
 
-          function formatDateTime(datetime) {
-            var date = new Date(datetime);
-            var dateString = date.toLocaleDateString();
-            var hours = date.getHours();
-            var minutes = date.getMinutes();
-            var seconds = date.getSeconds();
+        attributes = {
+          id: chat.conversationId,
+          username: chat.currentUser
+        }
 
-            return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
-          }
+        $.post('/chat/finalize', attributes, function(response) {
+          console.log(response)
+          chat.conversationId  = null;
+          $('.lw-chat-container').fadeOut();
+          $('.lw-message-content').remove();
+          $('.lw-dashboard-container').fadeIn();
+        });
+      });
 
-        $('#finalize_chat').click(function(e) {
-          e.preventDefault();
+      $('#chat').submit(function(e) {
+        e.preventDefault();
+        var message = $('#message').val();
 
-          attributes = {
+        var new_message = '<p>' + message + '</p>';
+
+        // creating a message
+        attributes = {
+          conversation: {
             id: chat.conversationId,
-            username: chat.currentUser
+            sender: {
+              user_id: chat.currentUser
+            },
+            parts: [
+              {
+                body: message,
+                mime_type: 'text/plain'
+              }
+            ]
           }
+        }
 
-          $.post('/chat/finalize', attributes, function(response) {
-            console.log(response)
-            chat.conversationId  = null;
-            chat.logout();
-            $('.lw-chat-container').fadeOut();
-            $('.lw-message-content').remove();
-            $('.lw-dashboard-container').fadeIn();
-          });
-        });
-
-        $('#chat').submit(function(e) {
-          console.log('enviando mensagem..');
-
-          e.preventDefault();
-          var message = $('#message').val();
-          var new_message = '<p>' + message + '</p>';
-
+        $.post('/messages', attributes, function(message) {
           $('#message').val('');
-
-          // creating a message
-          attributes = {
-            conversation: {
-              id: chat.conversationId,
-              sender: {
-                user_id: chat.currentUser
-              },
-              parts: [
-                {
-                  body: message,
-                  mime_type: 'text/plain'
-                }
-              ]
-            }
-          }
-
-          $.post('/messages', attributes, function(message) {
-            $('#message').val('');
-            $('#message')[0].focus();
-          });
-
+          $('#message')[0].focus();
         });
+      });
+
     </script>
 
     </body>
