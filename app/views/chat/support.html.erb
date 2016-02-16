@@ -374,7 +374,7 @@
                                   '<h2 class="lw-user">' +
                                     '<strong>' + created_by + '</strong>' + ' disse: ' +
                                   '</h2>' +
-                                  '<p class="messages">' + 'Initialized...' + '</p>' +
+                                  '<p class="messages">' + 'Oi, eu sou Goku! Em que posso ajudar?' + '</p>' +
                                  '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
                                 '</div>'
 
@@ -412,6 +412,7 @@
               console.log(response)
               chat.conversationId  = null;
               $('.lw-chat-container').fadeOut();
+              $('.lw-message-content').remove();
               $('.lw-dashboard-container').fadeIn();
 
             });

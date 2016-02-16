@@ -36,15 +36,88 @@
 
     .button {
       width: 100% !important;
-      background-color: #CA4D4D !important;
     }
 
-    .button:hover {
-      background-color: #606C76 !important;
-    }
+    /* CHAT */
+
+    .lw-chat-container {
+        padding-top: 50px;
+      }
+
+      .lw-chat {
+        width: 100%;
+        height: 500px;
+        border-radius: 5px;
+        border: .1rem solid #d1d1d1;
+        overflow: auto;
+      }
+
+      .lw-message-content {
+        margin: 0;
+      }
+
+      .lw-message-content .messages {
+        margin: 0;
+        font-size: 14px;
+        margin: 10px;
+        padding: 5px 15px;
+        background-color: rgba(244, 245, 246, 0.70);
+        border-radius: 10px;
+      }
+
+      .lw-chat-actions {
+        padding-top: 10px;
+      }
+
+      .lw-chat-actions input {
+        width: 89.5%;
+      }
+
+      .lw-chat-actions .lw-send {
+        float: right;
+      }
+
+      .lw-other-actions {
+        width: 100%;
+        text-align: center;
+      }
+      .lw-other-actions {
+        margin-top: 60px;
+      }
+
+      .lw-shut-up {
+        background-color: #606C76;
+        border: .1rem solid #606C76;
+      }
+
+      .lw-user {
+        font-size: 15px;
+        margin: 13px 15px 5px 15px;
+      }
+
+      .lw-user strong {
+        text-transform: uppercase;
+      }
+
+      .lw-status {
+        float: right;
+        margin: 0px 15px;
+      }
+      .lw-status p {
+        margin: 0;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .lw-chat-actions .button{
+        width: auto !important;
+      }
+
 
   </style>
   <body>
+
     <section class="lw-login login">
       <header class="lw-header">
         <div class="container">
@@ -66,24 +139,35 @@
       </div>
     </section>
 
-    <div class='chat'>
-      <h1>t2m - chat</h1>
-      <form id='chat'>
-        <div class='messages'></div>
-        <input type='text' id='message' size='80' autocomplete='off'>
-        <input class="button" type='submit' value='enviar'>
-      </form>
-    </div>
+     <section class="lw-chat-container">
+      <div class="container">
+        <header>
+          <h1>Chat - t2m - Client
+          </h1>
+          <hr>
+        </header>
+        <form id="chat">
+          <div class="lw-chat">
+          </div>
+          <div class="lw-chat-actions">
+            <div class="lw-chat-send">
+              <input type="text" id="message" placeholder="send a message..." autocomplete='off'/>
+              <input class="button" type='submit' value='enviar'>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
 
     <script>
       $(document).ready(function() {
-        $('.chat').hide();
+        $('.lw-chat-container').hide();
 
         var chat = {
           currentUser: null,
           conversationId: null,
           addMessage: function(message) {
-            $('.messages').append(message)
+           $('.lw-chat').append(message)
           }
         };
 
@@ -116,7 +200,7 @@
               $('.login').hide();
 
               // displays chat screen
-              $('.chat').show();
+              $('.lw-chat-container').show();
             });
           });
 
@@ -169,9 +253,16 @@
             var sent_at = formatDateTime(message.data.sent_at);
             var parts = message.data.parts;
             var sender = message.data.sender;
+            var status_message = 'DELIVERING';
 
             $.each(parts, function(index,message) {
-              var new_message = '<p>[' + sent_at + '] ' + sender.name + ' disse: ' + message.body + '</p>';
+              var new_message = '<div class="lw-message-content">' +
+                                  '<h2 class="lw-user">' +
+                                    '<strong>' + sender.name + '</strong>' + ' disse: ' +
+                                  '</h2>' +
+                                  '<p class="messages">' + message.body + '</p>' +
+                                 '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                                '</div>'
               chat.addMessage(new_message);
             });
           }
@@ -180,7 +271,13 @@
             var participants = message.data.participants;
             var created_at = formatDateTime(message.data.created_at);
             var created_by = createdBy(chat.currentUser, participants);
-            var new_message = '<p>[' + created_at + '] ' + created_by + ' iniciou uma conversa com você..' + '</p>';
+              var new_message =   '<div class="lw-message-content">' +
+                                  '<h2 class="lw-user">' +
+                                    '<strong>' + created_by + '</strong>' + ' disse: ' +
+                                  '</h2>' +
+                                  '<p class="messages">' + 'Oi, eu sou Goku! Em que posso ajudar?' + '</p>' +
+                                 '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                                '</div>'
 
             chat.conversationId = message.data.id;
             chat.addMessage(new_message);
@@ -205,14 +302,7 @@
             return dateString + ' ' + hours + ':' + minutes +  ':' + seconds;
           }
 
-            // finds an existent conversation on local storage
-            // if exists, creates a message on it.
-            // otherwise initiate a new conversation
-
-            // displays the chat screen
-            $('chat').show();
-          });
-       // });
+        });
 
         $('#chat').submit(function(e) {
           e.preventDefault();
