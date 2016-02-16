@@ -38,6 +38,12 @@ class Protocol < ActiveRecord::Base
     conversation.save
   end
 
+  def remove_participant_from_conversation(login)
+    conversation = Layer::Conversation.find(self.conversation_id)
+    conversation.participants = conversation.participants - [login]
+    conversation.save
+  end
+
   def self.next
     protocol = self.waiting.first
     protocol.progress!
