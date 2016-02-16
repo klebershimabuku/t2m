@@ -361,6 +361,7 @@
             }
           }
 
+          //Post Message
           $.post('/messages', attributes, function(message) {
             $('#message').val('');
             $('#message')[0].focus();
