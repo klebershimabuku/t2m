@@ -48,7 +48,7 @@
         width: 100%;
         height: 500px;
         border-radius: 5px;
-        border: .1rem solid #d1d1d1;
+        border: .1rem solid #FFBBBB;
         overflow: auto;
       }
 
@@ -114,8 +114,39 @@
         width: auto !important;
       }
 
+      .lw-client .lw-user {
+        color: #F33232;
+      }
+      .lw-client .messages {
+        background-color: rgba(243, 50, 50, 0.05);
+      }
 
-  </style>
+      .lw-client .lw-status p {
+        color: #F33232;
+      }
+
+     .lw-client-send input[type='submit'] {
+        background-color: #F33232 !important;
+        border: 1px solid #F33232;
+      }
+
+      .lw-client-send #message {
+        border: .1rem solid #FFBBBB;
+      }
+
+      .lw-client-cancel .lw-shut-up {
+        width: 20%;
+      }
+
+      .login .button {
+        background-color: #f33232;
+      }
+
+      .lw-client-cancel {
+        margin-top: 20px !important;
+      }
+
+    </style>
   <body>
 
     <section class="lw-login login">
@@ -150,12 +181,16 @@
           <div class="lw-chat">
           </div>
           <div class="lw-chat-actions">
-            <div class="lw-chat-send">
-              <input type="text" id="message" placeholder="send a message..." autocomplete='off'/>
+            <div class="lw-chat-send lw-client-send">
+              <input type="text" id="message" placeholder="send a message..." autocomplete='off' required/>
               <input class="button" type='submit' value='enviar'>
             </div>
           </div>
         </form>
+        <div class="lw-other-actions lw-client-cancel">
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Enim, eos aperiam amet nostrum nesciunt, est laboriosam eaque dolorum aliquam aliquid fuga officia cum dolor eligendi esse ratione velit non fugiat.</p>
+          <button class="lw-shut-up" id="finalize_chat">Encerrar</button>
+        </div>
       </div>
     </section>
 
@@ -256,7 +291,7 @@
             var status_message = 'DELIVERING';
 
             $.each(parts, function(index,message) {
-              var new_message = '<div class="lw-message-content">' +
+              var new_message = '<div class="lw-message-content lw-client">' +
                                   '<h2 class="lw-user">' +
                                     '<strong>' + sender.name + '</strong>' + ' disse: ' +
                                   '</h2>' +
