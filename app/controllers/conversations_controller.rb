@@ -13,4 +13,9 @@ class ConversationsController < ApplicationController
 
     render json: { id: conversation.id }, status: 201
   end
+
+  def messages
+    @conversation = Layer::Conversation.find(params[:conversation_id])
+    render json: @conversation.messages.to_json, status: 200
+  end
 end

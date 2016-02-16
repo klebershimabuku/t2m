@@ -18,6 +18,7 @@ class ChatController < ApplicationController
     conversation_id = params[:id]
     protocol = Protocol.find_by_conversation_id(conversation_id)
     protocol.finalize!
+    protocol.remove_participant_from_conversation(params[:username])
 
     render json: { text: "Protocol #{protocol.id} finalized with success" }
   end

@@ -239,35 +239,48 @@
 
     <script>
 
-      // LOGIN
+      var chat = {
+        currentUser: null,
+        conversationId: null,
+        connection: null,
 
+        addMessage: function(message) {
+          $('.lw-chat').append(message)
+        },
+
+        logout: function() {
+          connection.close();
+        }
+      };
+
+      // LOGIN
       $(document).ready(function() {
         $('.lw-dashboard-container').hide();
         $('.lw-chat-container').hide();
       });
+      var getSenderName = function(sender) {
+        if (sender.name == null) {
+          return sender.user_id;
+          } else {
+          return sender.name;
+        }
+      }
 
-        var chat = {
-          currentUser: null,
-          conversationId: null,
-          addMessage: function(message) {
-            $('.lw-chat').append(message)
-          }
-        };
 
-        $('#login').submit(function(e) {
-          e.preventDefault();
+      $('#login').submit(function(e) {
+        e.preventDefault();
 
-          var username = $('#username').val();
-          $('.username').attr('value', username);
+        var username = $('#username').val();
+        $('.username').attr('value', username);
 
-          $('.lw-login-container').hide();
-          $('.lw-dashboard-container').fadeIn();
-        });
+        $('.lw-login-container').hide();
+        $('.lw-dashboard-container').fadeIn();
+      });
 
         $('#dashboard').submit(function(e) {
           e.preventDefault();
-          var channel = $('.channel').val();
 
+          var channel = $('.channel').val();
           var username = $('.username').val();
 
           // get a session token
@@ -275,10 +288,28 @@
             var session_token = user.session_token;
             console.log(session_token);
 
-
             $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
               console.log('O analista entrou na conversa: ' + conversation.conversation);
               chat.conversationId = conversation.conversation;
+
+              //render previous messages
+              $.post('/conversations/messages', {conversation_id: chat.conversationId}, function(messages) {
+                $.each(messages, function(index, message) {
+                  parts = message.attributes.parts;
+                  var status_message = 'DELIVERING';
+                  sender_name = getSenderName(message.attributes.sender);
+                  $.each(parts, function(index,message) {
+                    var new_message = '<div class="lw-message-content lw-client">' +
+                      '<h2 class="lw-user">' +
+                        '<strong>' + sender_name + '</strong>' + ' disse: ' +
+                        '</h2>' +
+                      '<p class="messages">' + message.body + '</p>' +
+                      '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
+                      '</div>'
+                    chat.addMessage(new_message);
+                  });
+                });
+              });
             });
 
             chat.currentUser = username;
@@ -304,7 +335,6 @@
           function messageHandler(event) {
             var message = JSON.parse(event.data);
             var body = message.body;
-            console.log("WEBSOCKET RECEIVED: " + JSON.stringify(message, false, 4));
 
             switch(message.type) {
               case "change":
@@ -351,10 +381,12 @@
             var sender = message.data.sender;
             var status_message = 'DELIVERING';
 
+            sender_name = getSenderName(sender);
+
             $.each(parts, function(index,message) {
               var new_message = '<div class="lw-message-content">' +
                                   '<h2 class="lw-user">' +
-                                    '<strong>' + sender.name + '</strong>' + ' disse: ' +
+                                    '<strong>' + sender_name + '</strong>' + ' disse: ' +
                                   '</h2>' +
                                   '<p class="messages">' + message.body + '</p>' +
                                  '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
@@ -405,7 +437,8 @@
             e.preventDefault();
 
             attributes = {
-              id: chat.conversationId
+              id: chat.conversationId,
+              username: chat.currentUser
             }
 
             $.post('/chat/finalize', attributes, function(response) {
@@ -414,7 +447,6 @@
               $('.lw-chat-container').fadeOut();
               $('.lw-message-content').remove();
               $('.lw-dashboard-container').fadeIn();
-
             });
           });
 
@@ -430,7 +462,7 @@
             conversation: {
               id: chat.conversationId,
               sender: {
-                name: chat.currentUser
+                user_id: chat.currentUser
               },
               parts: [
                 {

@@ -12,5 +12,6 @@ Rails.application.routes.draw do
   post '/users/:channel/join', to: 'users#join'
 
   post '/conversations', to: 'conversations#create'
+  post '/conversations/messages', to: 'conversations#messages'
   post '/messages', to: 'messages#create'
 end
