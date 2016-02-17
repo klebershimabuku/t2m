@@ -14,6 +14,11 @@ class ChatController < ApplicationController
     render json: { conversation: protocol.conversation_id }, status: 200
   end
 
+  def has_protocols?
+    channel = params[:channel]
+    render json: { has_protocols:  Protocol.waiting_in_channel(channel).any? }, status: 200
+  end
+
   def finalize
     conversation_id = params[:id]
     protocol = Protocol.find_by_conversation_id(conversation_id)
