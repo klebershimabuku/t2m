@@ -197,10 +197,11 @@
     <script>
       $(document).ready(function() {
 
-        chat = {
+        var chat = {
           currentUser: null,
           conversationId: null,
           currentSessionToken: null,
+          connection: null,
 
           start: function() {
             $('.lw-chat-container').hide();
@@ -224,6 +225,8 @@
                 request.setRequestHeader('Content-Type', 'application/json');
               },
               success: function(response) {
+                console.log('closing connection..');
+                chat.connection.close();
                 console.log('session token was expired with success.');
                 chat.start();
               }
@@ -255,6 +258,7 @@
             $.post('/conversations/', attributes, function(response) {
               var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + sessionToken, 'layer-1.0');
               ws.addEventListener('message', messageHandler);
+              chat.connection = ws;
               console.log('connection established.');
 
               chat.conversationId = response.id;

@@ -257,8 +257,14 @@
       var chat = {
         currentUser: null,
         conversationId: null,
+        connection: null,
+
         addMessage: function(message) {
           $('.lw-chat').append(message)
+        },
+
+        logout: function() {
+          connection.close();
         }
       };
 
