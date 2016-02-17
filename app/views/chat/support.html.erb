@@ -179,6 +179,10 @@
         color: #fff;
       }
 
+      .lw-welcome {
+        background-color: rgba(155, 77, 202, 0.16) !important;
+      }
+
     </style>
   </head>
   <body>
@@ -424,10 +428,7 @@
             var created_by = createdBy(chat.currentUser, participants);
             var status_message = 'DELIVERING';
             var new_message =   '<div class="lw-message-content">' +
-                                  '<h2 class="lw-user">' +
-                                    '<strong>' + created_by + '</strong>' + ' disse: ' +
-                                  '</h2>' +
-                                  '<p class="messages">' + 'Oi, eu sou Goku! Em que posso ajudar?' + '</p>' +
+                                  '<p class="messages lw-welcome">' + 'Você iniciou uma conversa com o cliente ' + '<strong>' + created_by + '</strong>' + '</p>' +
                                  '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
                                 '</div>'
 

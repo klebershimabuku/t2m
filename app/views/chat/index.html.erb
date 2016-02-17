@@ -352,11 +352,10 @@
             var participants = message.data.participants;
             var created_at = formatDateTime(message.data.created_at);
             var created_by = createdBy(chat.currentUser, participants);
-              var new_message =   '<div class="lw-message-content">' +
+            var new_message =   '<div class="lw-message-content">' +
                                   '<h2 class="lw-user">' +
                                     '<strong>' + created_by + '</strong>' + ' disse: ' +
                                   '</h2>' +
-                                  '<p class="messages">' + 'Oi, eu sou Goku! Em que posso ajudar?' + '</p>' +
                                  '<div class="lw-status">' + '<p>' + status_message + '</p>' + '</div>' +
                                 '</div>'
 
