@@ -10,7 +10,7 @@ class Chat::JoinService
   end
 
   def out(channel)
-    @protocol.remove_participant_from_conversation(params[:username])
+    @protocol.remove_participant_from_conversation(@user.login)
     @user.out_of_channel(channel)
   end
 end

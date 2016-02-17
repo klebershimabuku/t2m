@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
@@ -232,6 +232,7 @@
         currentUser: null,
         conversationId: null,
         connection: null,
+        currentSessionToken: null,
         addMessage: function(message) {
           $('.lw-chat').append(message)
         },
@@ -265,12 +266,13 @@
         // get a session token
         $.get('/authenticate' + '?user_id=' + username, function(user) {
           var session_token = user.session_token;
+          chat.currentSessionToken = session_token;
           console.log(session_token);
           $.get('/chat/' + channel + '/has_protocols', function (response){
             if (!response.has_protocols) {
               $('.lw-status-queue').fadeIn();
             } else {
-              $.post('/chat/' + channel + '/next', {username: username}, function(conversation) {
+              $.post('/chat/' + channel + '/next', {login: username}, function(conversation) {
                 console.log('O analista entrou na conversa: ' + conversation.conversation);
                 chat.conversationId = conversation.conversation;
                 //render previous messages
@@ -301,14 +303,17 @@
                 $('.lw-dashboard-container').hide();
                 $('.lw-chat-container').fadeIn();
               });
-              // get the last waiting protocol
-              var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + session_token, 'layer-1.0');
-              ws.addEventListener('message', messageHandler);
-              console.log('connection established.');
+              connect();
             } // if
           }); // get
         }); // authenticate
       }); // dashboard
+      function connect() {
+        var ws = new WebSocket('wss://api.layer.com/websocket?session_token=' + chat.currentSessionToken, 'layer-1.0');
+        ws.addEventListener('message', messageHandler);
+        chat.connection = ws;
+        console.log('connection established.');
+      }
       function messageHandler(event) {
         var message = JSON.parse(event.data);
         var body = message.body;
@@ -395,11 +400,14 @@
         e.preventDefault();
         attributes = {
           id: chat.conversationId,
-          username: chat.currentUser
+          login: chat.currentUser
         }
         $.post('/chat/finalize', attributes, function(response) {
           console.log(response)
           chat.conversationId  = null;
+          console.log('closing connection..');
+          chat.connection.close();
+          console.log('connection closed.');
           $('.lw-chat-container').fadeOut();
           $('.lw-message-content').remove();
           $('.lw-dashboard-container').fadeIn();
@@ -433,3 +441,4 @@
 
     </body>
 </html>
+
